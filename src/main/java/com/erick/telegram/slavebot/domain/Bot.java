@@ -17,20 +17,18 @@ public class Bot extends TelegramLongPollingBot {
 
     private static final Logger logger = LoggerFactory.getLogger(Bot.class);
 
-    @Value("${bot.token}")
     private String token;
 
-    @Value("${bot.username}")
     private String username;
 
     @Override
     public String getBotToken() {
-        return token;
+        return "888247542:AAFmi7whgJ7jDHZroKxTUue6CqHp9LRNx1U";
     }
 
     @Override
     public String getBotUsername() {
-        return username;
+        return "Erickmobslavebot";
     }
 
     @Override
