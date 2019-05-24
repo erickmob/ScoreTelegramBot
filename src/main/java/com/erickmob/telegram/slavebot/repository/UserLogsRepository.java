@@ -12,7 +12,7 @@ import java.util.List;
 @Repository
 public interface UserLogsRepository extends CrudRepository<UserLogs, Long>{
 
-	long countByUserIDAndCommand(Integer userID, Command command);
+	long countByUserIDAndCommandAndChatID(Integer userID, Command command, Long chatId);
 
 	@Transactional
 	void deleteUserLogsByChatID(Long chatID);

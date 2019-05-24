@@ -19,7 +19,7 @@ public class UserLogsService {
 	public String handleNewVictory(Message message, Command command) {
 		String msg;
 		userLogsRepository.save(new UserLogs(new Date(), message.getFrom().getId(), message.getChatId(), command));
-		long qtd = userLogsRepository.countByUserIDAndCommand(message.getFrom().getId(), command);
+		long qtd = userLogsRepository.countByUserIDAndCommandAndChatID(message.getFrom().getId(), command, message.getChatId());
 		msg = "Show "+message.getFrom().getFirstName()+("!\n" +
 				"Voce ja ganhou "+Long.toString(qtd))+" vezes " +
 				"no "+command.getActionDone()+" nesse grupo!";

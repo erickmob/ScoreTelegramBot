@@ -158,7 +158,7 @@ public class SlaveBot extends TelegramLongPollingBot {
 
 
     private Command searchForActionByCommand(String text) {
-        return Command.fromString(text);
+        return Command.fromString(text.contains("@") ? text.split("@")[0] : text );
     }
 
     public void sendMessage(Long chatId, String text) {
