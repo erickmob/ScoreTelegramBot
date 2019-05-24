@@ -49,12 +49,12 @@ public class SlaveBot extends TelegramLongPollingBot {
 
     @Override
     public String getBotToken() {
-        return "751901687:AAFM7xByuc5XVJhisCJnNS-hybTxpEV7aQE";
+        return "yourTelegramToken";
     }
 
     //    @Override
     public String getBotUsername() {
-        return "MdcScoreBot";
+        return "yourBotName";
     }
 
 
