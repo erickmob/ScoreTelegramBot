@@ -2,6 +2,11 @@ package com.erickmob.telegram.slavebot;
 
 import javax.annotation.PostConstruct;
 
+import com.erickmob.telegram.slavebot.domain.UserLogs;
+import com.erickmob.telegram.slavebot.repository.TelegramUserRepository;
+import com.erickmob.telegram.slavebot.repository.UserLogsRepository;
+import com.erickmob.telegram.slavebot.service.MessageService;
+import com.erickmob.telegram.slavebot.service.TelegramUserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,8 +18,10 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import com.erickmob.telegram.slavebot.domain.Action;
-import com.erickmob.telegram.slavebot.service.UserActionsService;
+import com.erickmob.telegram.slavebot.domain.Command;
+import com.erickmob.telegram.slavebot.service.UserLogsService;
+
+import java.util.Date;
 
 //@ComponentScan({"com.erickmob.telegram.slavebot.service"
 //	,"com.erickmob.telegram.slavebot.repository"
@@ -26,75 +33,135 @@ public class SlaveBot extends TelegramLongPollingBot {
 
     private String token;
 
-    private String username;	
+    private String username;
 
     @Autowired
-    private UserActionsService userActionsService;
-    
+    private UserLogsService userActionsService;
 
-	@Override
+    @Autowired
+    private MessageService messageService;
+
+    @Autowired
+    private TelegramUserService telegramUserService;
+
+    @Autowired
+    private UserLogsRepository userLogsRepository;
+
+    @Override
     public String getBotToken() {
-        return "888247542:AAFmi7whgJ7jDHZroKxTUue6CqHp9LRNx1U";
+        return "751901687:AAFM7xByuc5XVJhisCJnNS-hybTxpEV7aQE";
     }
 
-//    @Override
+    //    @Override
     public String getBotUsername() {
-        return "Erickmobslavebot";
+        return "MdcScoreBot";
     }
 
-//    @Override
+
+//    @PostConstruct
+//    public void start() {
+//        logger.info("username: {}, token: {}", username, token);
+//    }
+
+    @PostConstruct
+    public void registerBot() {
+        TelegramBotsApi botsApi = new TelegramBotsApi();
+        try {
+            botsApi.registerBot(this);
+            logger.info("==================================TelegramBotService.afterPropertiesSet:registerBot finish");
+//            populate();
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void populate() {
+        userLogsRepository.save(new UserLogs(new Date(), 2, 1L, Command.ludo));
+        userLogsRepository.save(new UserLogs(new Date(), 3, 403267918L, Command.ludo));
+        userLogsRepository.save(new UserLogs(new Date(), 3, 403267918L, Command.ludo));
+        userLogsRepository.save(new UserLogs(new Date(), 1, 403267918L, Command.ludo));
+        userLogsRepository.save(new UserLogs(new Date(), 1, 403267918L, Command.ludo));
+        userLogsRepository.save(new UserLogs(new Date(), 1, 403267918L, Command.ludo));
+        userLogsRepository.save(new UserLogs(new Date(), 1, 403267918L, Command.ludo));
+        userLogsRepository.save(new UserLogs(new Date(), 4, 403267918L, Command.ludo));
+        userLogsRepository.save(new UserLogs(new Date(), 4, 403267918L, Command.ludo));
+        userLogsRepository.save(new UserLogs(new Date(), 4, 403267918L, Command.ludo));
+        userLogsRepository.save(new UserLogs(new Date(), 4, 403267918L, Command.ludo));
+        userLogsRepository.save(new UserLogs(new Date(), 4, 403267918L, Command.ludo));
+        userLogsRepository.save(new UserLogs(new Date(), 4, 403267918L, Command.ludo));
+        userLogsRepository.save(new UserLogs(new Date(), 1, 403267918L, Command.detetive));
+        userLogsRepository.save(new UserLogs(new Date(), 1, 403267918L, Command.detetive));
+        userLogsRepository.save(new UserLogs(new Date(), 2, 403267918L, Command.vida));
+        userLogsRepository.save(new UserLogs(new Date(), 2, 403267918L, Command.vida));
+    }
+
+    //    @Override
     public void onUpdateReceived(Update update) {
         if (update.hasMessage()) {
             Message message = update.getMessage();
+            try {
+                telegramUserService.updateOrCreateUser(message.getFrom());
+            } catch (Exception e) {
+                logger.info("==================================Error on updateCreate User");
+                e.printStackTrace();
+            }
             handleMessage(message);
         }
     }
-    
+
     private void handleMessage(Message message) {
-		Action actionFoundInMessage = searchForActionByCommand(message.getText());
-		if(actionFoundInMessage == null) {
-			sendCommandNotFoundMessage(message);
-		}else {
-			handleAction(actionFoundInMessage, message);
-		}
-	
-}
+        Command commandFoundInMessage = searchForActionByCommand(message.getText());
+        if (commandFoundInMessage == null) {
+            sendCommandNotFoundMessage(message);
+        } else {
+            handleAction(commandFoundInMessage, message);
+        }
 
-	private void handleAction(Action actionFoundInMessage, Message message) {
-		switch(actionFoundInMessage) {
-			case bebi:
-				this.sendMessage(message.getChatId(), userActionsService.handleBebiAction(message));
-				break;
-			case caguei:
-				this.sendMessage(message.getChatId(), userActionsService.handleCagueiAction(message));
-				break;
-			case help:
-				sendHelpMessage(message);
-				break;
-				
-		}
-		
-	}
+    }
+
+    private void sendCommandNotFoundMessage (Message message){
+        this.sendMessage(message.getChatId(), "Eta pega, não entendi. Digite  /help para saber o que posso fazer.");
+    }
+
+    private void handleAction(Command commandFoundInMessage, Message message) {
+        if (isHelpCommand(commandFoundInMessage)) {
+            sendHelpMessage(message);
+        } else if (isPlacarCommand(commandFoundInMessage)) {
+            sendPlacarMessage(message);
+        } else if (isClearCommand(commandFoundInMessage)) {
+            userActionsService.clearAllFromChat(message);
+            this.sendMessage(message.getChatId(), "Placar zerado nesse chat.");
+        } else {
+            this.sendMessage(message.getChatId(), userActionsService.handleNewVictory(message, commandFoundInMessage));
+        }
+    }
+
+    private boolean isHelpCommand(Command commandFoundInMessage) {
+        return commandFoundInMessage.equals(Command.help);
+    }
+
+    private void sendHelpMessage(Message message) {
+        this.sendMessage(message.getChatId(),messageService.getHelpMessage());
+    }
+
+    private boolean isPlacarCommand(Command commandFoundInMessage) {
+        return commandFoundInMessage.equals(Command.placar);
+    }
+
+    private void sendPlacarMessage(Message message) {
+        this.sendMessage(message.getChatId(),messageService.getPlacarMessage(message));
+    }
+
+    private boolean isClearCommand(Command commandFoundInMessage) {
+        return commandFoundInMessage.equals(Command.clear);
+    }
 
 
-	private void sendHelpMessage(Message message) {
-		this.sendMessage(message.getChatId(), 
-				"Opa, to aqui pra te ajudar!.  \n"
-				+ "Por enquanto só entendo os seguintes comandos: \n"
-				+ "/bebi : contabilizo que vc ja tomou seu goró e te respondo o total de vezes que vc ja fez isso.\n"
-				+ "/caguei : contabilizo as vezes que vc fez merda e te digo quantas merdas ja foram descarga a baixo.");
-		
-	}
+    private Command searchForActionByCommand(String text) {
+        return Command.fromString(text);
+    }
 
-	private void sendCommandNotFoundMessage(Message message) {
-		this.sendMessage(message.getChatId(), "Eta pega, não entendi. Digite  /help para saber o que posso fazer.");	
-	}
-
-	private Action searchForActionByCommand(String text) {
-		return Action.fromString(text);
-	}
-
-	public void sendMessage(Long chatId, String text) {
+    public void sendMessage(Long chatId, String text) {
         SendMessage response = new SendMessage();
         response.setChatId(chatId);
         response.setText(text);
@@ -106,19 +173,4 @@ public class SlaveBot extends TelegramLongPollingBot {
         }
     }
 
-//    @PostConstruct
-//    public void start() {
-//        logger.info("username: {}, token: {}", username, token);
-//    }
-    
-    @PostConstruct
-    public void registerBot(){
-        TelegramBotsApi botsApi = new TelegramBotsApi();
-        try {
-            botsApi.registerBot(this);
-            logger.info("==================================TelegramBotService.afterPropertiesSet:registerBot finish");
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
-        }
-    }
 }

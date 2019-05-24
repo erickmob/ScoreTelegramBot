@@ -11,16 +11,19 @@ import javax.persistence.Table;
 import lombok.Data;
 
 @Entity
-@Table(name = "UserActions")
+@Table(name = "UserLogs")
 @Data
-public class UserActions {
+public class UserLogs {
 
 
-    public UserActions(Date date, Integer userId, Action action) {
+    public UserLogs(Date date, Integer userId, Long chatID, Command command) {
 		this.date = date;
 		this.userID = userId;
-		this.action = action;
+		this.command = command;
+		this.chatID = chatID;
 	}
+
+	public UserLogs() {}
 
 	@Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -29,7 +32,9 @@ public class UserActions {
 	private Date date;
 	
 	private Integer userID;
+
+	private Long chatID;
     
-	private Action action;
+	private Command command;
 
 }
